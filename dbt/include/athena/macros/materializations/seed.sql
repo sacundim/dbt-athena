@@ -11,6 +11,7 @@
 {% macro athena__create_csv_table(model, agate_table) %}
   {%- set column_override = model['config'].get('column_types', {}) -%}
   {%- set quote_seed_column = model['config'].get('quote_columns', None) -%}
+  {%- set external_location = model['config'].get('external_location', None) -%}
 
   {% set sql %}
     create external table {{ this.render() }} (
@@ -22,7 +23,11 @@
         {%- endfor -%}
     )
     stored as parquet
+    {%- if external_location is not none %}
+    location '{{ external_location }}'
+    {%- else -%}
     location '{{ adapter.s3_uuid_table_location() }}'
+    {%- endif %}
     tblproperties ('classification'='parquet')
   {% endset %}
 
